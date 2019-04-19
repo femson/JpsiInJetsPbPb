@@ -1,5 +1,5 @@
 #ifndef makeAccEff_h
-#define makeAccEFf_h
+#define makeAccEff_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -338,7 +338,7 @@ public :
    TBranch        *b_hiEvtPlanes;   //!
 
 
-   oniaTree(Bool_t pbpb = true, Bool_t pr = false);
+   oniaTree(Bool_t pbpb = true, Bool_t pr = true);
    virtual ~oniaTree();
 
    virtual Int_t    Cut(Long64_t entry);

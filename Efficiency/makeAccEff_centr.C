@@ -13,157 +13,121 @@ void oniaTree::AccEffCalc()
   int nptbins = sizeof(ptbins)/sizeof(double)-1;
   int nybins = sizeof(ybins)/sizeof(double)-1;
   
-  cout<<"[INFO] Importing the numerators and denominators of the corrections."<<endl;
+  cout << "[INFO] Importing the numerators and denominators of the corrections." << endl;
 
-  
   TFile*prAccFile_pbpb = TFile::Open("FilesAccxEff/Acc/prAccHists_PbPb.root");
-  if (!prAccFile_pbpb) {
-    cout<<"[ERROR] pbpb prompt acceptance file not found!"<<endl;
-    if (isPbPb && isPr) {cout<<"[INFO] since the settings are good I will make it"<<endl;
-    AccCalc();
-    prAccFile_pbpb = TFile::Open("FilesAccxEff/Acc/prAccHists_PbPb.root");
-    }
-    else
-      cout<<"[ERROR] Please change your settings and retry."<<endl; return;
-  }
-  
-  /*
   TFile*nprAccFile_pbpb = TFile::Open("FilesAccxEff/Acc/nprAccHists_PbPb.root");
-  if (!nprAccFile_pbpb) {
-  cout<<"[ERROR] pbpb nonprompt acceptance file not found!"<<endl;
-  if (isPbPb && !isPr) {cout<<"[INFO] since the settings are good I will make it"<<endl;
-  AccCalc();
-  nprAccFile_pbpb = TFile::Open("FilesAccxEff/Acc/nprAccHists_PbPb.root");
-  }
-  else 
-  cout<<"[ERROR] Please change your settings and retry."<<endl; return;
-  }
-  */
-  
   TFile*prEffFile_pbpb = TFile::Open("FilesAccxEff/Eff/prEffHists_PbPb.root");
-  if (!prEffFile_pbpb) {
-    cout<<"[ERROR] pbpb prompt efficiency file not found!"<<endl;
-    if (isPbPb && isPr) {cout<<"[INFO] since the settings are good I will make it"<<endl;
-      EffCalc();
-      prEffFile_pbpb = TFile::Open("FilesAccxEff/Eff/prEffHists_PbPb.root");
-    }
-    else 
-      cout<<"[ERROR] Please change your settings and retry."<<endl; return;
-  }
-  
-  /*
   TFile*nprEffFile_pbpb = TFile::Open("FilesAccxEff/Eff/nprEffHists_PbPb.root");
-  if (!nprEffFile_pbpb) {
-    cout<<"[ERROR] pbpb nonprompt Eff file not found!"<<endl;
-    if (isPbPb && isPr) {cout<<"[INFO] since the settings are good I will make it"<<endl;
-      EffCalc();
-      nprEffFile_pbpb = TFile::Open("FilesAccxEff/Eff/nprEffHists_PbPb.root");
+
+  if (!prAccFile_pbpb) cout << "AccEffCalc() could not be executed for prompt PbPb since no PbPb prompt acceptance file was found. Try AccCalc() to create the file." << endl;
+  if (!prEffFile_pbpb) cout << "AccEffCalc() could not be executed for prompt PbPb since no PbPb prompt efficiency file was found. Try EffCalc() to create the file." << endl;
+  if (!nprAccFile_pbpb) cout << "AccEffCalc() could not be executed for non-prompt PbPb since no PbPb non-prompt acceptance file was found. Try AccCalc() to create the file." << endl;
+  if (!nprEffFile_pbpb) cout << "AccEffCalc() could not be executed for non-prompt PbPb since no PbPb non-prompt efficiency file was found. Try EffCalc() to create the file." << endl;
+
+  // prompt calculations
+  if (prAccFile_pbpb && prEffFile_pbpb)
+    {
+      // 0-10% centrality
+      TH2F *prAccNum_pbpb_10  = (TH2F*) prAccFile_pbpb->Get("num_0_10_2d_nominal");
+      TH2F *prAccDen_pbpb_10  = (TH2F*) prAccFile_pbpb->Get("deno_0_10_2d");
+      TH2F *prEffNum_pbpb_10  = (TH2F*) prEffFile_pbpb->Get("num_0_10_2d_nominal");
+      TH2F *prEffDen_pbpb_10  = (TH2F*) prEffFile_pbpb->Get("deno_0_10_2d");
+      prAccNum_pbpb_10->Multiply(prEffNum_pbpb_10);
+      prAccDen_pbpb_10->Multiply(prEffDen_pbpb_10);
+      
+      TEfficiency* prCorr_pbpb_10 = new TEfficiency("prCorr_pp_10", "AccxEff(y,pt), 0-10%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      prCorr_pbpb_10->SetStatisticOption(TEfficiency::kBBayesian);
+      prCorr_pbpb_10->SetPassedHistogram(*prAccNum_pbpb_10,"f");
+      prCorr_pbpb_10->SetTotalHistogram(*prAccDen_pbpb_10,"f");
+      prCorr_pbpb_10->SetName("corr_Jpsi_PbPb_pr_0_10");
+
+      // 10-30% centrality
+      TH2F *prAccNum_pbpb_30  = (TH2F*) prAccFile_pbpb->Get("num_10_30_2d_nominal");
+      TH2F *prAccDen_pbpb_30  = (TH2F*) prAccFile_pbpb->Get("deno_10_30_2d");
+      TH2F *prEffNum_pbpb_30  = (TH2F*) prEffFile_pbpb->Get("num_10_30_2d_nominal");
+      TH2F *prEffDen_pbpb_30  = (TH2F*) prEffFile_pbpb->Get("deno_10_30_2d");
+      prAccNum_pbpb_30->Multiply(prEffNum_pbpb_30);
+      prAccDen_pbpb_30->Multiply(prEffDen_pbpb_30);
+      
+      TEfficiency* prCorr_pbpb_30 = new TEfficiency("prCorr_pp_30", "AccxEff(y,pt), 10-30%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      prCorr_pbpb_30->SetStatisticOption(TEfficiency::kBBayesian);
+      prCorr_pbpb_30->SetPassedHistogram(*prAccNum_pbpb_30,"f");
+      prCorr_pbpb_30->SetTotalHistogram(*prAccDen_pbpb_30,"f");
+      prCorr_pbpb_30->SetName("corr_Jpsi_PbPb_pr_10_30");
+
+      // 30-100% centrality
+      TH2F *prAccNum_pbpb_100  = (TH2F*) prAccFile_pbpb->Get("num_30_100_2d_nominal");
+      TH2F *prAccDen_pbpb_100  = (TH2F*) prAccFile_pbpb->Get("deno_30_100_2d");
+      TH2F *prEffNum_pbpb_100  = (TH2F*) prEffFile_pbpb->Get("num_30_100_2d_nominal");
+      TH2F *prEffDen_pbpb_100  = (TH2F*) prEffFile_pbpb->Get("deno_30_100_2d");
+      prAccNum_pbpb_100->Multiply(prEffNum_pbpb_100);
+      prAccDen_pbpb_100->Multiply(prEffDen_pbpb_100);
+      
+      TEfficiency* prCorr_pbpb_100 = new TEfficiency("prCorr_pp_100", "AccxEff(y,pt), 30-100%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      prCorr_pbpb_100->SetStatisticOption(TEfficiency::kBBayesian);
+      prCorr_pbpb_100->SetPassedHistogram(*prAccNum_pbpb_100,"f");
+      prCorr_pbpb_100->SetTotalHistogram(*prAccDen_pbpb_100,"f");
+      prCorr_pbpb_100->SetName("corr_Jpsi_PbPb_pr_30_100");
+
+      TFile* fsave_pr = new TFile("FilesAccxEff/pr_correction_AccEff_centr.root","RECREATE");
+      prCorr_pbpb_10->Write("corr_Jpsi_PbPb_pr_0_10");
+      prCorr_pbpb_30->Write("corr_Jpsi_PbPb_pr_10_30");
+      prCorr_pbpb_100->Write("corr_Jpsi_PbPb_pr_30_100");
+      fsave_pr->Close(); 
     }
-    else 
-      cout<<"[ERROR] Please change your settings and retry."<<endl; return;
-  }
-  */
 
-  // prompt, 0-10% centrality
-  TH2F *prAccNum_pbpb_10  = (TH2F*) prAccFile_pbpb->Get("num_0_10_2d_nominal");
-  TH2F *prAccDen_pbpb_10  = (TH2F*) prAccFile_pbpb->Get("deno_0_10_2d");
-  TH2F *prEffNum_pbpb_10  = (TH2F*) prEffFile_pbpb->Get("num_0_10_2d_nominal");
-  TH2F *prEffDen_pbpb_10  = (TH2F*) prEffFile_pbpb->Get("deno_0_10_2d");
-  prAccNum_pbpb_10->Multiply(prEffNum_pbpb_10);
-  prAccDen_pbpb_10->Multiply(prEffDen_pbpb_10);
+  // non-prompt calculations
+  if (nprAccFile_pbpb && nprEffFile_pbpb)
+    {
+      // 0-10% centrality
+      TH2F *nprAccNum_pbpb_10 = (TH2F*) nprAccFile_pbpb->Get("num_0_10_2d_nominal");
+      TH2F *nprAccDen_pbpb_10 = (TH2F*) nprAccFile_pbpb->Get("deno_0_10_2d");
+      TH2F *nprEffNum_pbpb_10 = (TH2F*) nprEffFile_pbpb->Get("num_0_10_2d_nominal");
+      TH2F *nprEffDen_pbpb_10 = (TH2F*) nprEffFile_pbpb->Get("deno_0_10_2d");
+      nprAccNum_pbpb_10->Multiply(nprEffNum_pbpb_10);
+      nprAccDen_pbpb_10->Multiply(nprEffDen_pbpb_10);
+      
+      TEfficiency* nprCorr_pbpb_10 = new TEfficiency("nprCorr_pbpb_10", "AccxEff(y,pt), 0-10%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      nprCorr_pbpb_10->SetStatisticOption(TEfficiency::kBBayesian);
+      nprCorr_pbpb_10->SetPassedHistogram(*nprAccNum_pbpb_10,"f");
+      nprCorr_pbpb_10->SetTotalHistogram(*nprAccDen_pbpb_10,"f");
+      nprCorr_pbpb_10->SetName("corr_Jpsi_PbPb_npr_0_10");
 
-  TEfficiency* prCorr_pbpb_10 = new TEfficiency("prCorr_pp_10", "AccxEff(y,pt), 0-10%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  prCorr_pbpb_10->SetStatisticOption(TEfficiency::kBBayesian);
-  prCorr_pbpb_10->SetPassedHistogram(*prAccNum_pbpb_10,"f");
-  prCorr_pbpb_10->SetTotalHistogram(*prAccDen_pbpb_10,"f");
-  prCorr_pbpb_10->SetName("corr_Jpsi_PbPb_pr_0_10");
+      // 10-30% centrality
+      TH2F *nprAccNum_pbpb_30 = (TH2F*) nprAccFile_pbpb->Get("num_10_30_2d_nominal");
+      TH2F *nprAccDen_pbpb_30 = (TH2F*) nprAccFile_pbpb->Get("deno_10_30_2d");
+      TH2F *nprEffNum_pbpb_30 = (TH2F*) nprEffFile_pbpb->Get("num_10_30_2d_nominal");
+      TH2F *nprEffDen_pbpb_30 = (TH2F*) nprEffFile_pbpb->Get("deno_10_30_2d");
+      nprAccNum_pbpb_30->Multiply(nprEffNum_pbpb_30);
+      nprAccDen_pbpb_30->Multiply(nprEffDen_pbpb_30);
+      
+      TEfficiency* nprCorr_pbpb_30 = new TEfficiency("nprCorr_pbpb_30", "AccxEff(y,pt), 10-30%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      nprCorr_pbpb_30->SetStatisticOption(TEfficiency::kBBayesian);
+      nprCorr_pbpb_30->SetPassedHistogram(*nprAccNum_pbpb_30,"f");
+      nprCorr_pbpb_30->SetTotalHistogram(*nprAccDen_pbpb_30,"f");
+      nprCorr_pbpb_30->SetName("corr_Jpsi_PbPb_npr_10_30");
+      
+      // 30-100% centrality
+      TH2F *nprAccNum_pbpb_100 = (TH2F*) nprAccFile_pbpb->Get("num_30_100_2d_nominal");
+      TH2F *nprAccDen_pbpb_100 = (TH2F*) nprAccFile_pbpb->Get("deno_30_100_2d");
+      TH2F *nprEffNum_pbpb_100 = (TH2F*) nprEffFile_pbpb->Get("num_30_100_2d_nominal");
+      TH2F *nprEffDen_pbpb_100 = (TH2F*) nprEffFile_pbpb->Get("deno_30_100_2d");
+      nprAccNum_pbpb_100->Multiply(nprEffNum_pbpb_100);
+      nprAccDen_pbpb_100->Multiply(nprEffDen_pbpb_100);
+      
+      TEfficiency* nprCorr_pbpb_100 = new TEfficiency("nprCorr_pbpb_100", "AccxEff(y,pt), 30-100%; y; pt; eff", nybins, ybins, nptbins, ptbins);
+      nprCorr_pbpb_100->SetStatisticOption(TEfficiency::kBBayesian);
+      nprCorr_pbpb_100->SetPassedHistogram(*nprAccNum_pbpb_100,"f");
+      nprCorr_pbpb_100->SetTotalHistogram(*nprAccDen_pbpb_100,"f");
+      nprCorr_pbpb_100->SetName("corr_Jpsi_PbPb_npr_30_100");
 
-
-  // non-prompt, 0-10% centrality
-  /*
-  TH2F *nprAccNum_pbpb_10 = (TH2F*) nprAccFile_pbpb->Get("num_0_10_2d_nominal");
-  TH2F *nprAccDen_pbpb_10 = (TH2F*) nprAccFile_pbpb->Get("deno_0_10_2d");
-  TH2F *nprEffNum_pbpb_10 = (TH2F*) nprEffFile_pbpb->Get("num_0_10_2d_nominal");
-  TH2F *nprEffDen_pbpb_10 = (TH2F*) nprEffFile_pbpb->Get("deno_0_10_2d");
-  nprAccNum_pbpb_10->Multiply(nprEffNum_pbpb_10);
-  nprAccDen_pbpb_10->Multiply(nprEffDen_pbpb_10);
-
-  TEfficiency* nprCorr_pbpb_10 = new TEfficiency("nprCorr_pbpb_10", "AccxEff(y,pt), 0-10%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  nprCorr_pbpb_10->SetStatisticOption(TEfficiency::kBBayesian);
-  nprCorr_pbpb_10->SetPassedHistogram(*nprAccNum_pbpb_10,"f");
-  nprCorr_pbpb_10->SetTotalHistogram(*nprAccDen_pbpb_10,"f");
-  nprCorr_pbpb_10->SetName("corr_Jpsi_PbPb_npr_0_10");
-  */
-
-  // prompt, 10-30% centrality
-  TH2F *prAccNum_pbpb_30  = (TH2F*) prAccFile_pbpb->Get("num_10_30_2d_nominal");
-  TH2F *prAccDen_pbpb_30  = (TH2F*) prAccFile_pbpb->Get("deno_10_30_2d");
-  TH2F *prEffNum_pbpb_30  = (TH2F*) prEffFile_pbpb->Get("num_10_30_2d_nominal");
-  TH2F *prEffDen_pbpb_30  = (TH2F*) prEffFile_pbpb->Get("deno_10_30_2d");
-  prAccNum_pbpb_30->Multiply(prEffNum_pbpb_30);
-  prAccDen_pbpb_30->Multiply(prEffDen_pbpb_30);
-
-  TEfficiency* prCorr_pbpb_30 = new TEfficiency("prCorr_pp_30", "AccxEff(y,pt), 10-30%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  prCorr_pbpb_30->SetStatisticOption(TEfficiency::kBBayesian);
-  prCorr_pbpb_30->SetPassedHistogram(*prAccNum_pbpb_30,"f");
-  prCorr_pbpb_30->SetTotalHistogram(*prAccDen_pbpb_30,"f");
-  prCorr_pbpb_30->SetName("corr_Jpsi_PbPb_pr_10_30");
-
-
-  // non-prompt, 10-30% centrality
-  /*
-  TH2F *nprAccNum_pbpb_30 = (TH2F*) nprAccFile_pbpb->Get("num_10_30_2d_nominal");
-  TH2F *nprAccDen_pbpb_30 = (TH2F*) nprAccFile_pbpb->Get("deno_10_30_2d");
-  TH2F *nprEffNum_pbpb_30 = (TH2F*) nprEffFile_pbpb->Get("num_10_30_2d_nominal");
-  TH2F *nprEffDen_pbpb_30 = (TH2F*) nprEffFile_pbpb->Get("deno_10_30_2d");
-  nprAccNum_pbpb_30->Multiply(nprEffNum_pbpb_30);
-  nprAccDen_pbpb_30->Multiply(nprEffDen_pbpb_30);
-
-  TEfficiency* nprCorr_pbpb_30 = new TEfficiency("nprCorr_pbpb_30", "AccxEff(y,pt), 10-30%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  nprCorr_pbpb_30->SetStatisticOption(TEfficiency::kBBayesian);
-  nprCorr_pbpb_30->SetPassedHistogram(*nprAccNum_pbpb_30,"f");
-  nprCorr_pbpb_30->SetTotalHistogram(*nprAccDen_pbpb_30,"f");
-  nprCorr_pbpb_30->SetName("corr_Jpsi_PbPb_npr_10_30");
-  */
-
-  // prompt, 30-100% centrality
-  TH2F *prAccNum_pbpb_100  = (TH2F*) prAccFile_pbpb->Get("num_30_100_2d_nominal");
-  TH2F *prAccDen_pbpb_100  = (TH2F*) prAccFile_pbpb->Get("deno_30_100_2d");
-  TH2F *prEffNum_pbpb_100  = (TH2F*) prEffFile_pbpb->Get("num_30_100_2d_nominal");
-  TH2F *prEffDen_pbpb_100  = (TH2F*) prEffFile_pbpb->Get("deno_30_100_2d");
-  prAccNum_pbpb_100->Multiply(prEffNum_pbpb_100);
-  prAccDen_pbpb_100->Multiply(prEffDen_pbpb_100);
-
-  TEfficiency* prCorr_pbpb_100 = new TEfficiency("prCorr_pp_100", "AccxEff(y,pt), 30-100%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  prCorr_pbpb_100->SetStatisticOption(TEfficiency::kBBayesian);
-  prCorr_pbpb_100->SetPassedHistogram(*prAccNum_pbpb_100,"f");
-  prCorr_pbpb_100->SetTotalHistogram(*prAccDen_pbpb_100,"f");
-  prCorr_pbpb_100->SetName("corr_Jpsi_PbPb_pr_30_100");
-
-  // non-prompt, 30-100% centrality
-  /*
-  TH2F *nprAccNum_pbpb_100 = (TH2F*) nprAccFile_pbpb->Get("num_30_100_2d_nominal");
-  TH2F *nprAccDen_pbpb_100 = (TH2F*) nprAccFile_pbpb->Get("deno_30_100_2d");
-  TH2F *nprEffNum_pbpb_100 = (TH2F*) nprEffFile_pbpb->Get("num_30_100_2d_nominal");
-  TH2F *nprEffDen_pbpb_100 = (TH2F*) nprEffFile_pbpb->Get("deno_30_100_2d");
-  nprAccNum_pbpb_100->Multiply(nprEffNum_pbpb_100);
-  nprAccDen_pbpb_100->Multiply(nprEffDen_pbpb_100);
-
-  TEfficiency* nprCorr_pbpb_100 = new TEfficiency("nprCorr_pbpb_100", "AccxEff(y,pt), 30-100%; y; pt; eff", nybins, ybins, nptbins, ptbins);
-  nprCorr_pbpb_100->SetStatisticOption(TEfficiency::kBBayesian);
-  nprCorr_pbpb_100->SetPassedHistogram(*nprAccNum_pbpb_100,"f");
-  nprCorr_pbpb_100->SetTotalHistogram(*nprAccDen_pbpb_100,"f");
-  nprCorr_pbpb_100->SetName("corr_Jpsi_PbPb_npr_30_100");
-  */
-
-  TFile* fsave = new TFile("FilesAccxEff/correction_AccEff_centr.root","RECREATE");
-  prCorr_pbpb_10->Write("corr_Jpsi_PbPb_pr_0_10");
-  //nprCorr_pbpb_10->Write("corr_Jpsi_PbPb_npr_0_10");
-  prCorr_pbpb_30->Write("corr_Jpsi_PbPb_pr_10_30");
-  //nprCorr_pbpb_30->Write("corr_Jpsi_PbPb_npr_10_30");
-  prCorr_pbpb_100->Write("corr_Jpsi_PbPb_pr_30_100");
-  //nprCorr_pbpb_100->Write("corr_Jpsi_PbPb_npr_30_100");
-  fsave->Close();
+      TFile* fsave_npr = new TFile("FilesAccxEff/npr_correction_AccEff_centr.root","RECREATE");
+      nprCorr_pbpb_10->Write("corr_Jpsi_PbPb_npr_0_10");
+      nprCorr_pbpb_30->Write("corr_Jpsi_PbPb_npr_10_30");
+      nprCorr_pbpb_100->Write("corr_Jpsi_PbPb_npr_30_100");
+      fsave_npr->Close(); 
+    }
 }
 
 
